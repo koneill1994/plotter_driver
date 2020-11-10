@@ -24,6 +24,9 @@ im_file="out.svg"
 interval=.1
 maxr=4096
 
+pen_interval=1
+move_interval=.1
+
 pen_up_pin=4
 GPIO.setup(pen_up_pin, GPIO.OUT)
 
@@ -37,14 +40,18 @@ def pltmove(x,y):
 	dacx.set_voltage(vx)
 	dacy.set_voltage(vy)
 
+def pltmove1(c):
+	pltmove(c[0],c[1])
+
 # might need to reverse these two depending
 def pen_up():
-	GPIO.output(pen_up_pin,GPIO.HIGH)
+	GPIO.output(pen_up_pin,GPIO.LOW)
 	print("pen up")
 	
 def pen_down():
-	GPIO.output(pen_up_pin,GPIO.LOW)
+	GPIO.output(pen_up_pin,GPIO.HIGH)
 	print("pen down")
+
 
 def circle_test():
 	while 1:
@@ -69,18 +76,39 @@ def load_image(im):
 	for child in tree.getroot():
 		l=[float(x) for x in child.attrib["points"].split(",")]
 		p=[[l[(2*n)],l[(2*n)+1]] for n in range(0,int(len(l)/2))]
-		print(p)
+		# ~ print(p)
 		lines.append(p)
 	return lines
 
+def get_dimensions(lines):
+	maxx=max([p[0] for l in lines for p in l])
+	maxy=max([p[1] for l in lines for p in l])
+	return (maxx,maxy)
 
+def scale_point(p,dim):
+	return [p[0]/dim[0],p[1]/dim[1]]
 
+def draw_image(lines):
+	dim=get_dimensions(lines)
+	pen_up()
+	for line in lines:
+		pltmove1(scale_point(line[0],dim))
+		pen_down()
+		time.sleep(pen_interval)
+		for point in line[1:]:
+			pltmove1(scale_point(point,dim))
+			time.sleep(move_interval)
+		pen_up()
+		time.sleep(pen_interval)
 
+print(get_dimensions(load_image(im_file)))
 
 try:
-	pen_updown_test()
+	# ~ circle_test()
+	draw_image(load_image(im_file))
 except KeyboardInterrupt:
 	pass
 finally:
 	GPIO.cleanup(pen_up_pin)
+	print("done")
 
