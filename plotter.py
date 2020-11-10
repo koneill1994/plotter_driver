@@ -24,8 +24,8 @@ im_file="out.svg"
 interval=.1
 maxr=4096
 
-pen_interval=1
-move_interval=.1
+pen_interval=.5
+move_interval=.05
 
 pen_up_pin=4
 GPIO.setup(pen_up_pin, GPIO.OUT)
@@ -93,6 +93,7 @@ def draw_image(lines):
 	pen_up()
 	for line in lines:
 		pltmove1(scale_point(line[0],dim))
+		time.sleep(pen_interval)
 		pen_down()
 		time.sleep(pen_interval)
 		for point in line[1:]:
@@ -105,6 +106,7 @@ print(get_dimensions(load_image(im_file)))
 
 try:
 	# ~ circle_test()
+	# ~ pen_updown_test()
 	draw_image(load_image(im_file))
 except KeyboardInterrupt:
 	pass
